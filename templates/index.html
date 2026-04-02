@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BACII Graph Sketcher — Grade 12 Cambodia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <script>
+    MathJax = {
+        tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+        options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script" async></script>
+</head>
+<body>
+
+<!-- Background grid -->
+<div class="bg-grid"></div>
+
+<div class="page-wrapper">
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-badge">BACII PREP</div>
+        <h1 class="site-title">Graph Sketcher</h1>
+        <p class="site-subtitle">Complete function analysis · Cambodian Grade 12 Mathematics</p>
+    </header>
+
+    <!-- Input Card -->
+    <form method="POST" action="/analyze" class="input-card">
+        <div class="input-grid">
+            <div class="input-group">
+                <label class="input-label">
+                    <span class="label-num">01</span>
+                    Function f(x)
+                </label>
+                <input
+                    type="text"
+                    name="function_input"
+                    value="{{ results.function if results else '(x**2 - 1)/(x**2 - 4)' }}"
+                    class="text-input"
+                    placeholder="e.g. (x**2-1)/(x**2-4)"
+                    autocomplete="off"
+                    spellcheck="false"
+                >
+                <p class="input-hint">Use <code>**</code> for power, <code>*</code> for multiply, <code>e</code> for Euler's number</p>
+                <div class="example-chips">
+                    <span class="chip" onclick="setFunc('x**3 - 3*x')">x³−3x</span>
+                    <span class="chip" onclick="setFunc('(x**2-1)/(x**2-4)')">(x²−1)/(x²−4)</span>
+                    <span class="chip" onclick="setFunc('sin(x)/x')">sin(x)/x</span>
+                    <span class="chip" onclick="setFunc('e**(-x**2)')">e^(−x²)</span>
+                    <span class="chip" onclick="setFunc('1/(1+e**(-x))')">Sigmoid</span>
+                </div>
+            </div>
+            <div class="input-group">
+                <label class="input-label">
+                    <span class="label-num">02</span>
+                    Tangent at x =
+                </label>
+                <input
+                    type="text"
+                    name="x_point"
+                    value="{{ results.xo if results else '0' }}"
+                    class="text-input"
+                    placeholder="0"
+                >
+                <p class="input-hint">Draw the tangent line at this x-value</p>
+            </div>
+        </div>
+        <button type="submit" class="analyze-btn">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            Analyze Function
+        </button>
+    </form>
+
+    {% if error %}
+    <div class="error-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ error }}
+    </div>
+    {% endif %}
+
+    {% if results %}
+    <div class="results-wrapper">
+
+        <!-- Graph Panel -->
+        <div class="graph-panel">
+            <div class="panel-header">
+                <div class="panel-label">Graph</div>
+                <div class="panel-title">f(x) = <span class="func-name">{{ results.function }}</span></div>
+            </div>
+            <div class="graph-container">
+                <img src="data:image/png;base64,{{ results.plot_url }}" class="graph-img" alt="Function graph">
+            </div>
+            <div class="graph-legend">
+                <span class="legend-item"><span class="dot blue"></span>f(x)</span>
+                <span class="legend-item"><span class="dot red"></span>Vertical Asymptote</span>
+                <span class="legend-item"><span class="dot green"></span>Horizontal Asymptote</span>
+                <span class="legend-item"><span class="dot orange"></span>Tangent Line</span>
+                <span class="legend-item"><span class="dot yellow"></span>Critical Points</span>
+            </div>
+        </div>
+
+        <!-- Steps Panel -->
+        <div class="steps-panel">
+            <div class="panel-header">
+                <div class="panel-label">Solution</div>
+                <div class="panel-title">Step-by-Step Analysis</div>
+            </div>
+            <div class="steps-list">
+                {% for step in results.steps %}
+                <div class="step-card" style="animation-delay: {{ loop.index0 * 0.07 }}s">
+                    <div class="step-number">{{ "%02d"|format(step.num) }}</div>
+                    <div class="step-body">
+                        <div class="step-title">{{ step.title }}</div>
+                        <div class="step-math">
+                            \[ {{ step.math }} \]
+                        </div>
+                        <div class="step-explain">{{ step.explain }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+    {% endif %}
+
+    <footer class="site-footer">
+        <p>Built for Cambodian Grade 12 BACII Mathematics Examination Preparation</p>
+    </footer>
+
+</div>
+
+<script>
+function setFunc(val) {
+    document.querySelector('input[name="function_input"]').value = val;
+}
+</script>
+</body>
+</html>
